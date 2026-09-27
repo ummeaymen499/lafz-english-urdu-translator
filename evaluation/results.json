@@ -1,0 +1,51 @@
+{
+  "status": "not_run",
+  "dataset_version": "1.0",
+  "dataset_status": "AI_assisted_draft_pending_bilingual_human_review",
+  "endpoint": null,
+  "started_at": null,
+  "finished_at": null,
+  "dataset_case_count": 100,
+  "successful_case_count": 0,
+  "sacrebleu_version": null,
+  "bleu_settings": {
+    "metric": "BLEU",
+    "tokenizer": "intl",
+    "effective_order": true,
+    "normalization": "Unicode NFC"
+  },
+  "bleu": {
+    "score": null,
+    "sample_count": 0,
+    "tokenizer": "intl"
+  },
+  "by_direction": {},
+  "by_category": {},
+  "human_evaluation": {
+    "status": "pending_manual_ratings",
+    "score_scale": "1-5",
+    "rated_case_count": 0,
+    "averages": {
+      "adequacy": {
+        "n": 0,
+        "mean": null
+      },
+      "fluency": {
+        "n": 0,
+        "mean": null
+      },
+      "terminology_accuracy": {
+        "n": 0,
+        "mean": null
+      },
+      "overall_quality": {
+        "n": 0,
+        "mean": null
+      }
+    },
+    "by_direction": {},
+    "by_category": {}
+  },
+  "errors": [],
+  "cases": []
+}
