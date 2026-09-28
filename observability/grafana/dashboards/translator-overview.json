@@ -1,0 +1,314 @@
+{
+  "id": null,
+  "uid": "translator-overview",
+  "title": "Translator — Telemetry Overview",
+  "description": "Request rates, latency (p50/p95/p99), quality scores, token usage, and cost for the English-Urdu translator app.",
+  "tags": ["translator", "genai"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "endpoint",
+        "type": "query",
+        "label": "Endpoint",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(translator_http_requests_total, endpoint)",
+        "multi": true,
+        "includeAll": true,
+        "current": { "value": "$__all", "text": "All" },
+        "refresh": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Request Rate (last 5 m)",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(rate(translator_http_requests_total{endpoint=~\"$endpoint\"}[5m]))",
+          "legendFormat": "req/s"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Error Rate (last 5 m)",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 0.01 },
+            { "color": "red", "value": 0.05 }
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(translator_errors_total{endpoint=~\"$endpoint\"}[5m]))",
+          "legendFormat": "err/s"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "In-Flight Requests",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "expr": "sum(translator_in_flight_requests{endpoint=~\"$endpoint\"})",
+          "legendFormat": "in-flight"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Fallback Model Uses (total)",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 1 },
+            { "color": "red", "value": 10 }
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(translator_fallback_model_usage_total)",
+          "legendFormat": "fallbacks"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Request Rate by Endpoint",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "custom": { "lineWidth": 2 }, "unit": "reqps" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (endpoint) (rate(translator_http_requests_total{endpoint=~\"$endpoint\"}[5m]))",
+          "legendFormat": "{{endpoint}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "HTTP Status Code Breakdown",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "custom": { "lineWidth": 2 }, "unit": "reqps" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (status_code) (rate(translator_http_requests_total{endpoint=~\"$endpoint\"}[5m]))",
+          "legendFormat": "HTTP {{status_code}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Translation Latency — p50 / p95 / p99 (ms)",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right" } },
+      "fieldConfig": {
+        "defaults": { "custom": { "lineWidth": 2 }, "unit": "ms" }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, endpoint) (rate(translator_latency_ms_bucket{endpoint=~\"$endpoint\"}[5m])))",
+          "legendFormat": "p50 {{endpoint}}"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(translator_latency_ms_bucket{endpoint=~\"$endpoint\"}[5m])))",
+          "legendFormat": "p95 {{endpoint}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, endpoint) (rate(translator_latency_ms_bucket{endpoint=~\"$endpoint\"}[5m])))",
+          "legendFormat": "p99 {{endpoint}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Latency SLA — Met vs Missed",
+      "gridPos": { "x": 0, "y": 22, "w": 8, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "expr": "sum(translator_latency_target_met_total{met=\"true\"}) / (sum(translator_latency_target_met_total{met=\"true\"}) + sum(translator_latency_target_met_total{met=\"false\"})) * 100",
+          "legendFormat": "SLA %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "green", "value": 95 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "heatmap",
+      "title": "Translation Quality Score Distribution",
+      "gridPos": { "x": 8, "y": 22, "w": 16, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "calculate": false, "color": { "scheme": "Spectral" } },
+      "targets": [
+        {
+          "expr": "sum by (le) (rate(translator_quality_score_bucket[5m]))",
+          "legendFormat": "{{le}}",
+          "format": "heatmap"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Review-Flagged Translations (total)",
+      "gridPos": { "x": 0, "y": 27, "w": 8, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 5 }
+          ]
+        }
+      },
+      "targets": [
+        { "expr": "sum(translator_review_flagged_total)", "legendFormat": "flagged" }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Token Usage — Input vs Output",
+      "gridPos": { "x": 0, "y": 32, "w": 12, "h": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "custom": { "lineWidth": 2 }, "unit": "short" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(translator_input_tokens_total[5m])) * 60",
+          "legendFormat": "Input tokens/min — {{model}}"
+        },
+        {
+          "expr": "sum by (model) (rate(translator_output_tokens_total[5m])) * 60",
+          "legendFormat": "Output tokens/min — {{model}}"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Estimated Cost (USD / hour)",
+      "gridPos": { "x": 12, "y": 32, "w": 12, "h": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "custom": { "lineWidth": 2 }, "unit": "currencyUSD" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(translator_estimated_cost_usd_total[5m])) * 3600",
+          "legendFormat": "USD/hr — {{model}}"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Cumulative Estimated Cost (USD)",
+      "gridPos": { "x": 0, "y": 41, "w": 8, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "targets": [
+        { "expr": "sum(translator_estimated_cost_usd_total)", "legendFormat": "Total cost" }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Node.js Process CPU (%) & Heap Used",
+      "gridPos": { "x": 0, "y": 46, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "rate(translator_process_cpu_seconds_total[1m]) * 100",
+          "legendFormat": "CPU %"
+        },
+        {
+          "expr": "translator_nodejs_heap_size_used_bytes / 1024 / 1024",
+          "legendFormat": "Heap Used (MB)"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Node.js Active Handles & Event Loop Lag",
+      "gridPos": { "x": 12, "y": 46, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "translator_nodejs_active_handles_total",
+          "legendFormat": "Active Handles"
+        },
+        {
+          "expr": "translator_nodejs_eventloop_lag_seconds * 1000",
+          "legendFormat": "Event Loop Lag (ms)"
+        }
+      ]
+    }
+  ]
+}

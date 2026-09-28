@@ -106,6 +106,9 @@ textarea[dir="rtl"] { font-family: 'Noto Nastaliq Urdu', serif; font-size: 17px;
 .text-action:disabled, .copy-button:disabled { cursor: default; opacity: 0.43; }
 .direction-mark { position: absolute; z-index: 1; top: 50%; left: 50%; width: 29px; height: 29px; display: grid; place-items: center; transform: translate(-50%, -50%); border: 1px solid #d9dbd3; border-radius: 50%; background: var(--paper); color: var(--green); font-size: 14px; box-shadow: 0 4px 12px -4px rgba(32, 36, 33, 0.3); }
 .translation-output { flex: 1; overflow: auto; padding: 18px; color: #2e3931; font-size: 14px; line-height: 1.85; white-space: pre-wrap; }
+.inline-suggestion-editor { width: 100%; min-height: 140px; padding: 0; border: 0; resize: vertical; background: transparent; font: inherit; line-height: inherit; }
+.suggestion-disclosure, .suggestion-saved-note { padding: 8px 16px; border-top: 1px solid #eceef0; color: #667085; font-size: 11px; line-height: 1.5; }
+.suggestion-saved-note { margin: 0; color: #536a1a; }
 .urdu-output { font-family: 'Noto Nastaliq Urdu', serif; font-size: 19px; line-height: 2.1; }
 .output-placeholder { color: #a0a49e; font-size: 13px; }
 .urdu-output .output-placeholder { font-family: 'DM Sans', sans-serif; font-size: 13px; }
@@ -181,6 +184,7 @@ textarea[dir="rtl"] { font-family: 'Noto Nastaliq Urdu', serif; font-size: 17px;
 .journal-entry small { display: block; margin-top: 8px; color: #898e87; font-size: 8px; line-height: 1.5; }
 .text-not-retained { color: #959a93 !important; font-style: italic; }
 .journal-review-form { margin-top: 11px; padding-top: 10px; border-top: 1px solid #e5e6e0; }
+.journal-user-suggestion { padding-left: 10px; border-left: 2px solid #b6ff2e; }
 .journal-review-form .text-action { margin-top: 7px; color: var(--green); }
 .examples-row { min-height: 50px; display: flex; align-items: center; gap: 11px; border-top: 1px solid var(--line); animation: appear 600ms 280ms ease both; }
 .examples-label { margin-right: 4px; color: #a0a49d; font-size: 8px; letter-spacing: 0.08em; white-space: nowrap; }

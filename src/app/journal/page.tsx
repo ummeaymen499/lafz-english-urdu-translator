@@ -176,8 +176,10 @@ export default function JournalPage() {
                       <b>Source</b> {entry.source}
                     </p>
                     <p>
-                      <b>Translation</b> {entry.correction || entry.translation}
+                      <b>Model output</b> {entry.translation}
                     </p>
+                    {entry.correction && <p><b>Approved correction</b> {entry.correction}</p>}
+                    {entry.suggestedTranslation && <p className="journal-user-suggestion"><b>User suggestion</b> {entry.suggestedTranslation}</p>}
                   </>
                 ) : (
                   <p className="text-not-retained">Source/output text was not retained.</p>
@@ -194,7 +196,7 @@ export default function JournalPage() {
                 {entry.reviewStatus !== "approved" && entry.source && entry.translation && (
                   <form className="journal-review-form" onSubmit={(event) => submitReview(event, entry)}>
                     <label htmlFor={`correction-${entry.id}`}>Correct or approve this output</label>
-                    <textarea id={`correction-${entry.id}`} name="correction" defaultValue={entry.correction || entry.translation} dir={entry.targetLanguage === "Urdu" ? "rtl" : "ltr"} />
+                    <textarea id={`correction-${entry.id}`} name="correction" defaultValue={entry.suggestedTranslation || entry.correction || entry.translation} dir={entry.targetLanguage === "Urdu" ? "rtl" : "ltr"} />
                     <div className="rating-controls">
                       <label>
                         Fluency

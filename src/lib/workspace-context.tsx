@@ -33,6 +33,7 @@ export type ReviewEntry = Omit<TranslationResult, "translation" | "reviewReason"
   createdAt: string;
   reviewStatus: "pending" | "approved" | "not-flagged";
   correction?: string;
+  suggestedTranslation?: string;
   fluencyRating?: number;
   adequacyRating?: number;
 };
@@ -97,6 +98,7 @@ interface WorkspaceValue {
   ) => void;
   submitReview: (event: FormEvent<HTMLFormElement>, entry: ReviewEntry) => void;
   submitCurrentReview: (event: FormEvent<HTMLFormElement>) => void;
+  submitInlineSuggestion: (suggestion: string) => void;
   clearJournal: () => void;
 }
 
@@ -247,9 +249,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     retainText = saveTextLocally || saveReviewText,
   ) {
     if (!correction.trim()) return;
+    const retainCorrection = retainText || Boolean(entry.source && entry.translation);
     const updated: ReviewEntry = {
       ...entry,
-      ...(retainText ? { source: entry.source || input, translation: correction.trim(), correction: correction.trim() } : {}),
+      ...(retainCorrection ? { source: entry.source || input, translation: entry.translation || correction.trim(), correction: correction.trim() } : {}),
       ...(fluencyRating ? { fluencyRating } : {}),
       ...(adequacyRating ? { adequacyRating } : {}),
       reviewStatus: "approved",
@@ -273,6 +276,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (!entry) return;
     const formData = new FormData(event.currentTarget);
     approveEntry(entry, String(formData.get("correction") || reviewDraft), Number(formData.get("fluencyRating")), Number(formData.get("adequacyRating")), saveTextLocally || saveReviewText);
+  }
+
+  function submitInlineSuggestion(suggestion: string) {
+    const entry = history.find((item) => item.id === currentEntryId);
+    const suggestedTranslation = suggestion.trim();
+    if (!entry || !translationMeta || !suggestedTranslation) return;
+
+    const updated: ReviewEntry = {
+      ...entry,
+      source: entry.source || input,
+      translation: entry.translation || translationMeta.translation,
+      suggestedTranslation,
+      reviewStatus: "pending",
+    };
+    saveJournal(history.map((item) => (item.id === entry.id ? updated : item)));
+    setTranslation(suggestedTranslation);
+    setReviewDraft(suggestedTranslation);
   }
 
   function clearJournal() {
@@ -405,6 +425,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     approveEntry,
     submitReview,
     submitCurrentReview,
+    submitInlineSuggestion,
     clearJournal,
   };
 

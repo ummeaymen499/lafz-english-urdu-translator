@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    env: "local"
+
+scrape_configs:
+  # ── Next.js translator app ─────────────────────────────────────────────────
+  - job_name: "translator"
+    # The Next.js app runs on the host machine (outside Docker).
+    # On Linux/macOS use host.docker.internal or the actual LAN IP.
+    # On Windows Docker Desktop host.docker.internal resolves correctly.
+    static_configs:
+      - targets:
+          - "host.docker.internal:3000"
+    metrics_path: "/api/metrics"
+    # If you set METRICS_TOKEN in your Next.js env, uncomment and fill in below:
+    # authorization:
+    #   credentials: "YOUR_METRICS_TOKEN"
+
+  # ── Prometheus self-monitoring ─────────────────────────────────────────────
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

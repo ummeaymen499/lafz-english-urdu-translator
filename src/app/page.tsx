@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Clipboard, Eraser, Languages, LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Check, Clipboard, Eraser, Languages, LoaderCircle, PencilLine, RefreshCw, Sparkles, X } from "lucide-react";
 import { TranslationControls } from "@/components/TranslationControls";
 import { useWorkspace } from "@/lib/workspace-context";
 
@@ -19,6 +20,8 @@ export default function TranslatePage() {
     translationMeta,
     loading,
     journalReady,
+    history,
+    currentEntryId,
     error,
     isUrduSource,
     outputLanguage,
@@ -41,7 +44,12 @@ export default function TranslatePage() {
     clearInput,
     setExample,
     submitCurrentReview,
+    submitInlineSuggestion,
   } = useWorkspace();
+  const [editingSuggestion, setEditingSuggestion] = useState(false);
+  const [suggestionDraft, setSuggestionDraft] = useState("");
+  const currentSavedSuggestion = history.find((entry) => entry.id === currentEntryId)?.suggestedTranslation;
+  const hasSavedSuggestion = Boolean(currentSavedSuggestion);
 
   return (
     <section className="workspace" aria-labelledby="page-title">
@@ -100,6 +108,15 @@ export default function TranslatePage() {
                 <span className="loading-label">
                   <LoaderCircle className="spin" size={17} /> Finding the right words…
                 </span>
+              ) : editingSuggestion ? (
+                <textarea
+                  className="inline-suggestion-editor"
+                  value={suggestionDraft}
+                  onChange={(event) => setSuggestionDraft(event.target.value)}
+                  dir={outputLanguage === "Urdu" ? "rtl" : outputLanguage === "English" ? "ltr" : "auto"}
+                  aria-label="Suggest an edited translation"
+                  autoFocus
+                />
               ) : (
                 translation || (
                   <span className="output-placeholder">
@@ -110,6 +127,11 @@ export default function TranslatePage() {
                 )
               )}
             </div>
+            {editingSuggestion && (
+              <div className="suggestion-disclosure">
+                Saving stores the source and suggestion in this browser. Suggestions are not used as approved examples until reviewed.
+              </div>
+            )}
             {translationMeta && (
               <>
                 <div className={`quality-strip ${translationMeta.needsReview ? "review-required" : ""}`} title="This is an uncalibrated model estimate, not a verified probability.">
@@ -140,6 +162,37 @@ export default function TranslatePage() {
                   : "Ready when you are"}
               </span>
               <div className="output-actions">
+                {editingSuggestion ? (
+                  <>
+                    <button
+                      type="button"
+                      className="copy-button"
+                      onClick={() => {
+                        submitInlineSuggestion(suggestionDraft);
+                        setEditingSuggestion(false);
+                      }}
+                      disabled={!suggestionDraft.trim() || suggestionDraft.trim() === translationMeta?.translation}
+                    >
+                      <Check size={14} /> <span>Save feedback</span>
+                    </button>
+                    <button type="button" className="copy-button" onClick={() => setEditingSuggestion(false)} aria-label="Cancel suggestion">
+                      <X size={14} /> <span>Cancel</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => {
+                      setSuggestionDraft(currentSavedSuggestion || translationMeta?.translation || translation);
+                      setEditingSuggestion(true);
+                    }}
+                    disabled={!translation || !translationMeta}
+                    title="Suggest an edit to this translation"
+                  >
+                    <PencilLine size={14} /> <span>{hasSavedSuggestion ? "Edit suggestion" : "Suggest an edit"}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   className="copy-button"
@@ -157,6 +210,7 @@ export default function TranslatePage() {
                 </button>
               </div>
             </div>
+            {hasSavedSuggestion && !editingSuggestion && <p className="suggestion-saved-note">Your suggestion is saved in this browser and awaits review.</p>}
           </section>
         </div>
         {error && (
@@ -202,7 +256,7 @@ export default function TranslatePage() {
           </button>
           {reviewOpen && (
             <form className="review-form" onSubmit={submitCurrentReview}>
-              <label htmlFor="review-correction">Reviewer-approved translation</label>
+                    <label htmlFor="review-correction">Reviewer-approved translation</label>
               <textarea id="review-correction" name="correction" value={reviewDraft} onChange={(event) => setReviewDraft(event.target.value)} dir={translationMeta.targetLanguage === "Urdu" ? "rtl" : "ltr"} />
               <div className="rating-controls">
                 <label>
