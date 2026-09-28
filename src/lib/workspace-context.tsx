@@ -174,9 +174,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   function getApprovedExamples() {
     return history
-      .filter((entry) => entry.reviewStatus === "approved" && entry.source && (entry.correction || entry.translation))
-      .slice(-3)
-      .map((entry) => ({ source: entry.source, translation: entry.correction || entry.translation! }));
+      .flatMap((entry) => {
+        const source = entry.source;
+        const translation = entry.correction || entry.translation;
+        if (
+          entry.reviewStatus !== "approved" ||
+          !source?.trim() ||
+          !translation?.trim() ||
+          source.length > 500 ||
+          translation.length > 1000
+        ) return [];
+        return [{ source, translation }];
+      })
+      .slice(-3);
   }
 
   function setDirection(next: Direction) {
