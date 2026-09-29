@@ -37,22 +37,7 @@ For presentation slides and speaker notes, see [PRESENTATION_README.md](PRESENTA
 
 ## Architecture
 
-```text
-Browser UI (Next.js / React)
-   |  translation settings and source text
-   v
-Next.js route handlers
-   |  validate request, assemble prompt, record app metrics
-   v
-Google Gemini API
-   |  translation + model-reported metadata
-   v
-Browser result and IndexedDB journal
-   |  approved examples are reused on this browser only
-   +-------------------------------> later translation prompts
-
-Prometheus --scrapes--> GET /api/metrics <-- Grafana dashboard
-```
+See the detailed [Lafz architecture diagrams](ARCHITECTURE.md) for the runtime component map, translation and feedback sequence, telemetry/evaluation flows, metric families, and security/data boundaries.
 
 The application has no server-side translation database or user-account system. Journal records live in IndexedDB for the current browser profile. Text retention is opt-in; a submitted inline suggestion explicitly records its source and translation alongside the feedback so it can be reviewed. Approved examples are sent as part of a later Gemini prompt from that browser.
 

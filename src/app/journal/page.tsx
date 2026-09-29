@@ -20,18 +20,19 @@ export default function JournalPage() {
   const urduToEnglishCount = history.length - englishToUrduCount;
   const directionScale = Math.max(englishToUrduCount, urduToEnglishCount, 1);
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
   const activityDays = Array.from({ length: 7 }, (_, index) => {
     const day = new Date(today);
-    day.setDate(today.getDate() - (6 - index));
+    day.setUTCDate(today.getUTCDate() - (6 - index));
+    const dayKey = day.toISOString().slice(0, 10);
     const count = history.filter((entry) => {
       const createdAt = new Date(entry.createdAt);
-      return !Number.isNaN(createdAt.getTime()) && createdAt.toDateString() === day.toDateString();
+      return !Number.isNaN(createdAt.getTime()) && createdAt.toISOString().slice(0, 10) === dayKey;
     }).length;
     return {
-      key: day.toISOString(),
-      label: day.toLocaleDateString(undefined, { weekday: "short" }),
-      date: day.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      key: dayKey,
+      label: day.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" }),
+      date: day.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
       count,
     };
   });
